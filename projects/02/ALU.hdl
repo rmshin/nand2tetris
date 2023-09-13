@@ -42,5 +42,28 @@ CHIP ALU {
         ng; // 1 if (out < 0),  0 otherwise
 
     PARTS:
-   // Put you code here:
+    // zero & negate x y values according to flags
+    Mux16(a=x, b=false, sel=zx, out=x0);
+    Not16(in=x0, out=notx);
+    Mux16(a=x0, b=notx, sel=nx, out=xfin);
+
+    Mux16(a=y, b=false, sel=zy, out=y0);
+    Not16(in=y0, out=noty);
+    Mux16(a=y0, b=noty, sel=ny, out=yfin);
+
+    // apply appropriate function
+    Add16(a=xfin, b=yfin, out=sumxy);
+    And16(a=xfin, b=yfin, out=andxy);
+    Mux16(a=andxy, b=sumxy, sel=f, out=outf);
+
+    // negate output if necessary
+    Not16(in=outf, out=notout);
+    // use MSB of out to test out < 0
+    // split out into two bytes to check for 1 values
+    Mux16(a=outf, b=notout, sel=no, out=out, out[0..7]=byte1, out[8..15]=byte2, out[15]=ng);
+    Or8Way(in=byte1, out=or1);
+    Or8Way(in=byte2, out=or2);
+    Or(a=or1, b=or2, out=outnot0);
+    // negate 'outnot0' to test out == 0
+    Not(in=outnot0, out=zr);
 }
