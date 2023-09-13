@@ -1,0 +1,8 @@
+/** If a=b=1 then out=1, else out=0 */
+CHIP And {
+    IN a, b;
+    OUT out;
+    PARTS:
+    Nand(a=a, b=b, out=notab);
+    Nand(a=notab, b=notab, out=out);
+}

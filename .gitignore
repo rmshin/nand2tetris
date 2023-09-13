@@ -1,0 +1,3 @@
+projects/*/*.out
+projects/*/*.tst
+projects/*/*.cmp
