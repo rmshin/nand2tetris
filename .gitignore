@@ -1,4 +1,4 @@
-projects/*/*.out
-projects/*/*.tst
-projects/*/*.cmp
+projects/**/*.out
+projects/**/*.tst
+projects/**/*.cmp
 tools/

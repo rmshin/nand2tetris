@@ -58,7 +58,7 @@ CHIP ALU {
 
     // negate output if necessary
     Not16(in=outf, out=notout);
-    // use MSB of out to test out < 0
+    // use MSB to test out < 0
     // split out into two bytes to check for 1 values
     Mux16(a=outf, b=notout, sel=no, out=out, out[0..7]=byte1, out[8..15]=byte2, out[15]=ng);
     Or8Way(in=byte1, out=or1);
