@@ -11,4 +11,51 @@
 // "white" in every pixel;
 // the screen should remain fully clear as long as no key is pressed.
 
-// Put your code here.
+@SCREEN
+D=A
+@pointer // pointer to track screen word location
+M=D
+(CLEAR)
+    // go to fill if any key pressed
+    @KBD
+    D=M
+    @FILL
+    D;JGT
+
+    @SCREEN
+    D=A
+    @pointer
+    D=M-D
+    A=M
+    M=0 // clear screen white
+    @CLEAR
+    D;JEQ // stop decrement if screen all white
+
+    @pointer
+    M=M-1
+    @CLEAR
+    0;JMP
+(FILL)
+    // go to clear if no keys pressed
+    @KBD
+    D=M
+    @CLEAR
+    D;JEQ
+
+    // SCREEN (16384) + screen size (8192)
+    @24576
+    D=A
+    @pointer
+    D=D-M
+    @FILL
+    D;JEQ // stop fill if screen all black
+
+    // fill screen black
+    @pointer
+    A=M
+    M=-1
+    @pointer
+    M=M+1
+
+    @FILL
+    0;JMP

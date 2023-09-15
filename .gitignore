@@ -1,4 +1,5 @@
 projects/**/*.out
 projects/**/*.tst
 projects/**/*.cmp
+projects/**/*.hack
 tools/
