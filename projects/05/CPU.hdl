@@ -39,5 +39,67 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+    /**********************
+     * Decode instruction *
+     **********************/
+    // if instruction[15] == 1, then C-instruction, else A-instruction
+    Mux16(a=false, 
+          b=instruction, 
+          sel=instruction[15], 
+          out[0]=j3,
+          out[1]=j2,
+          out[02]=j1,
+          out[3]=d3, out[3]=writeM,
+          out[4]=d2,
+          out[5]=d1,
+          out[6]=c6,
+          out[7]=c5,
+          out[8]=c4,
+          out[9]=c3,
+          out[10]=c2,
+          out[11]=c1,
+          out[12]=a);
+
+    /***********************
+     * Execute instruction *
+     ***********************/
+    // A Register
+    // load A register if A-instruction or C-instruction && d1
+    Mux(a=true, b=d1, sel=instruction[15], out=loadA);
+    // determine value to load into A Register
+    Mux16(a=instruction, b=outALU, sel=instruction[15], out=inputRegA);
+    ARegister(in=inputRegA, load=loadA, out=regA, out[0..14]=addressM);
+    
+    // C-instruction
+    // for ALU x: read from D Register
+    DRegister(in=outALU, load=d2, out=regD);
+    // for y: if a == 0 use regA, else use inM
+    Mux16(a=regA, b=inM, sel=a, out=regMA);
+    ALU(x=regD, 
+        y=regMA,
+        zx=c1,
+        nx=c2,
+        zy=c3,
+        ny=c4,
+        f=c5,
+        no=c6,
+        out=outALU, out=outM,
+        zr=outEQ, // 1 if (out == 0), 0 otherwise
+        ng=outLT); // 1 if (out < 0), 0 otherwise
+    
+    /**************************
+     * Fetch next instruction *
+     **************************/
+    Or(a=outEQ, b=outLT, out=outLE);
+    Not(in=outLE, out=outGT);
+
+    // jump if any of the three conditions are met
+    And(a=outLT, b=j1, out=jump0);
+    And(a=outEQ, b=j2, out=jump1);
+    And(a=outGT, b=j3, out=jump2);
+    Or(a=jump0, b=jump1, out=jump01);
+    Or(a=jump01, b=jump2, out=jump);
+
+    // increment address unless jump or reset
+    PC(in=regA, load=jump, inc=true, reset=reset, out[0..14]=pc);
 }
