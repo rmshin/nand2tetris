@@ -3,8 +3,9 @@
 #include <string.h>
 #include "parser.h"
 #include "code.h"
+#include "symtable.h"
 
-void dec_to_binary_str(char *str, int n)
+void dec_to_binary_str(char str[16], int n)
 {
     // reset to 0
     strcpy(str, "000000000000000");
@@ -22,22 +23,66 @@ void dec_to_binary_str(char *str, int n)
     }
 }
 
+void process_labels(void)
+{
+    int cmd_type, pc = 0;
+    char sym[MAX_SYMBOL_LEN];
+    while (has_more_commands())
+    {
+        advance();
+        cmd_type = command_type();
+        if (cmd_type == A_COMMAND || cmd_type == C_COMMAND)
+        {
+            pc++;
+        }
+        else if (cmd_type == L_COMMAND)
+        {
+            strcpy(sym, symbol());
+            add_entry(sym, pc);
+        }
+    };
+
+    rewind_file();
+};
+
 int main(int argc, char **argv)
 {
     char *path = argv[1];
     init_file(path);
+    init_symtable();
+    process_labels();
 
     FILE *out = fopen("out.hack", "w");
-    int cmd_type;
-    char line[18], binary_str[16];
+    int cmd_type, ram_address = 16;
+    char line[18], binary_str[16], sym[MAX_SYMBOL_LEN];
     while (has_more_commands())
     {
         advance();
         cmd_type = command_type();
         if (cmd_type == A_COMMAND)
         {
-            char *decimal = symbol();
-            dec_to_binary_str(binary_str, atoi(decimal));
+            strcpy(sym, symbol());
+            char *end;
+            int res, decimal;
+            res = strtol(sym, &end, 10);
+            if ((int)strlen(sym) != (end - sym)) // non-decimal symbol
+            {
+                if (contains(sym)) // known symbol
+                {
+                    decimal = get_address(sym);
+                }
+                else // new variable
+                {
+                    add_entry(sym, ram_address);
+                    decimal = ram_address;
+                    ram_address++;
+                }
+            }
+            else
+            {
+                decimal = res;
+            };
+            dec_to_binary_str(binary_str, decimal);
             line[0] = '0';
             strcpy(line + 1, binary_str);
         }
@@ -54,6 +99,10 @@ int main(int argc, char **argv)
             strcat(line, c);
             strcat(line, d);
             strcat(line, j);
+        }
+        else if (cmd_type == L_COMMAND)
+        {
+            continue; // skip L_COMMANDs
         }
         strcat(line, "\n");
         fputs(line, out);

@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 
-FILE *file = NULL;
-static char curr_cmd[128] = {'\0'};
-static char next_cmd[128] = {'\0'};
+static FILE *file = NULL;
+static char curr_cmd[MAX_CMD_LENGTH] = {'\0'};
+static char next_cmd[MAX_CMD_LENGTH] = {'\0'};
 
 void init_file(char *path)
 {
@@ -15,6 +15,13 @@ void init_file(char *path)
         return;
     }
 };
+
+void rewind_file(void)
+{
+    rewind(file);
+    curr_cmd[0] = '\0';
+    next_cmd[0] = '\0';
+}
 
 void close_file(void)
 {
@@ -27,11 +34,11 @@ bool validate_syntax(char *cmd)
     return true;
 };
 
-static char line[128], stripped[128];
 void get_next_command(void)
 {
-    bool not_eof = false;
-    while ((not_eof = fgets(line, 128, file) != NULL))
+    char line[256], stripped[256];
+    bool not_eof;
+    while ((not_eof = fgets(line, sizeof line, file) != NULL))
     {
         // strip spaces
         int li = 0, si = 0;
@@ -114,7 +121,7 @@ int command_type(void)
     }
 };
 
-static char sym[128];
+static char sym[MAX_SYMBOL_LEN];
 char *symbol(void)
 {
     int clen = strlen(curr_cmd);

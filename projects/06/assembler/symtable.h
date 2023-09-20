@@ -1,5 +1,7 @@
 #ifndef SYMTABLE_H
 #define SYMTABLE_H
+#define MAX_SYMBOL_LEN 128
+#define MAX_SYMBOL_COUNT 1000
 
 #include <stdbool.h>
 
