@@ -5,6 +5,8 @@
 static FILE *file = NULL;
 static char curr_cmd[MAX_CMD_LENGTH] = {'\0'};
 static char next_cmd[MAX_CMD_LENGTH] = {'\0'};
+static char curr_arg1[MAX_ARG_LENGTH] = {'\0'};
+static int curr_arg2 = 0;
 
 void init_file(char *path)
 {
@@ -23,12 +25,14 @@ void close_file(void)
 
 void get_next_command(void)
 {
-    char line[256], stripped[256];
+    char line[256];
     bool not_eof;
     while ((not_eof = fgets(line, sizeof line, file) != NULL))
     {
         // vars for capturing command values
-        char cmd[MAX_CMD_LENGTH];
+        char cmd[MAX_CMD_LENGTH],
+            arg1[MAX_ARG_LENGTH],
+            arg2[MAX_ARG_LENGTH];
         int match_count;
 
         match_count = sscanf(line, " %s", cmd);
@@ -37,27 +41,45 @@ void get_next_command(void)
         {
             continue;
         }
-        else
-        {
-        }
+
         // strip comments
-        char *result = strstr(stripped, "//");
+        char *result = strstr(line, "//");
         if (result != NULL)
         {
             // if entire line is commented, read next line
-            if (result - stripped == 0)
+            if (result - line == 0)
             {
                 continue;
             }
             else
             {
-                stripped[result - stripped] = '\0';
+                line[result - line] = '\0';
             }
         }
+
+        match_count = sscanf(line, "%s %s %s", cmd, arg1, arg2);
+        if (match_count == 1) // arithmetic
+        {
+            strcpy(line, cmd);
+        }
+        else if (match_count == 3) // push-pop
+        {
+            strcpy(line, cmd);
+            strcat(line, " ");
+            strcat(line, arg1);
+            strcat(line, " ");
+            strcat(line, arg2);
+        }
+        else
+        {
+            // unknown command, skip
+            continue;
+        }
+
         break;
     }
 
-    // 5. if EOF, set next_cmd=NULL and return
+    // if EOF, set next_cmd=NULL and return
     if (!not_eof)
     {
         next_cmd[0] = '\0';
@@ -66,7 +88,7 @@ void get_next_command(void)
 
     // TODO: implement syntax validation
     // validate_syntax(stripped);
-    strcpy(next_cmd, stripped);
+    strcpy(next_cmd, line);
     return;
 };
 
@@ -80,8 +102,9 @@ bool has_more_commands(void)
     return true;
 };
 
-void advance(void){
-
+void advance(void)
+{
+    strcpy(curr_cmd, next_cmd);
 };
 
 int str_command_type(char *cmd)
@@ -138,13 +161,59 @@ int str_command_type(char *cmd)
 
 int command_type(void)
 {
-    str_command_type(curr_cmd);
+    char cmd[MAX_ARG_LENGTH];
+    sscanf(curr_cmd, "%s", cmd);
+    return str_command_type(cmd);
 };
 
-char *arg1(void){
-
+char *arg1(void)
+{
+    int cmd_type = command_type();
+    if (cmd_type == C_ARITHMETIC)
+    {
+        return curr_cmd;
+    }
+    else if (cmd_type == C_RETURN || curr_cmd[0] == '\0')
+    {
+        curr_arg1[0] = '\0'; // reset arg1
+        return NULL;
+    }
+    else
+    {
+        char arg[MAX_ARG_LENGTH];
+        int match_count;
+        match_count = sscanf(curr_cmd, "%*s %s", arg);
+        if (match_count == 1)
+        {
+            strcpy(curr_arg1, arg);
+            return curr_arg1;
+        }
+        else
+        {
+            curr_arg1[0] = '\0'; // reset arg1
+            return NULL;
+        }
+    }
 };
 
-char *arg2(void){
-
+int arg2(void)
+{
+    int cmd_type = command_type();
+    if (!(cmd_type == C_PUSH ||
+          cmd_type == C_POP ||
+          cmd_type == C_CALL ||
+          cmd_type == C_FUNCTION))
+    {
+        curr_arg2 = 0; // reset arg2
+    }
+    else
+    {
+        int match_count;
+        match_count = sscanf(curr_cmd, "%*s %*s %d", &curr_arg2);
+        if (match_count < 1)
+        {
+            curr_arg2 = 0; // reset arg2
+        }
+    }
+    return curr_arg2;
 };

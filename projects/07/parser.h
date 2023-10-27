@@ -1,8 +1,8 @@
 #ifndef PARSER_H
 #define PARSER_H
 #include <stdbool.h>
-#define MAX_CMD_LENGTH 4
-#define MAX_SEG_LENGTH 9
+#define MAX_CMD_LENGTH 128
+#define MAX_ARG_LENGTH 16
 
 typedef enum
 {
@@ -23,6 +23,6 @@ bool has_more_commands(void);
 void advance(void);
 int command_type(void);
 char *arg1(void);
-char *arg2(void);
+int arg2(void);
 
 #endif
