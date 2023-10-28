@@ -1,6 +1,7 @@
 #ifndef PARSER_H
 #define PARSER_H
 #include <stdbool.h>
+#define MAX_FNAME_LENGTH 128
 #define MAX_CMD_LENGTH 128
 #define MAX_ARG_LENGTH 16
 
@@ -19,6 +20,8 @@ typedef enum
 
 void init_file(char *path);
 void close_file(void);
+char *get_filename(void);
+char *get_fextension(void);
 bool has_more_commands(void);
 void advance(void);
 int command_type(void);

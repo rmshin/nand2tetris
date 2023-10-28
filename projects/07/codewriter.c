@@ -23,6 +23,7 @@ void increment_sp()
 
 void pop_stack_to_d()
 {
+  // load stack[-1] into A reg & decrement sp
   fputs("@SP\nAM=M-1\n", out);
   fputs("D=M\n", out);
 };
@@ -99,19 +100,23 @@ void write_arithmetic(char *cmd)
   }
 };
 
-// TODO: load seg[idx] address into A reg
-void load_seg_to_a(char *seg, int idx){
-    // @idx
-    // D=A // D <- idx
-    // @LCL // R1 (base address local)
-    // A=M+D // A <- base_lcl+idx
+// load segment[idx] address into A reg
+void load_seg_to_a(char *seg, int idx)
+{
+  // load idx into D reg
+  char str[16];
+  sprintf(str, "@%d\nD=A\n", idx);
+  fputs(str, out);
+  // load seg[idx] into A reg
+  sprintf(str, "@%s\nA=M+D\n", seg);
+  fputs(str, out);
 };
 
 // push seg[idx] to stack
 void push_seg_to_stack(char *seg, int idx)
 {
   load_seg_to_a(seg, idx);
-  // copy seg[idx] value to stack
+  // push seg[idx] value in D to stack
   fputs("D=M\n@SP\nA=M\nM=D\n", out);
   increment_sp();
 };
@@ -123,7 +128,7 @@ void pop_stack_to_seg(char *seg, int idx)
   // store seg[idx] address in R13
   fputs("D=A\n@13\nM=D\n", out);
   pop_stack_to_d();
-  // load seg[idx] address from R13 and update val with stack value
+  // load seg[idx] address from R13 and update val with popped stack value
   fputs("@13\nA=M\nM=D\n", out);
 };
 
@@ -145,6 +150,11 @@ void write_push_pop(CommandType cmd_type, char *segment, int idx)
     }
     else if (strcmp(segment, "static") == 0)
     {
+      char str[MAX_FNAME_LENGTH + 8];
+      sprintf(str, "@%s.%d\n", get_filename(), idx);
+      fputs(str, out);
+      fputs("D=M\n@SP\nA=M\nM=D\n", out);
+      increment_sp();
     }
     else if (strcmp(segment, "argument") == 0)
     {
@@ -164,17 +174,43 @@ void write_push_pop(CommandType cmd_type, char *segment, int idx)
     }
     else if (strcmp(segment, "pointer") == 0)
     {
+      // pointer segment maps to R3 & R4
+      if (idx == 0)
+      {
+        fputs("@3\n", out);
+      }
+      else if (idx == 1)
+      {
+        fputs("@4\n", out);
+      }
+      // same as other segments
+      fputs("D=M\n@SP\nA=M\nM=D\n", out);
+      increment_sp();
     }
     else if (strcmp(segment, "temp") == 0)
     {
+      // temp segment maps to R5 - R12
+      char str[5];
+      sprintf(str, "@%d\n", idx + 5);
+      fputs(str, out);
+      // same as other segments
+      fputs("D=M\n@SP\nA=M\nM=D\n", out);
+      increment_sp();
     }
     break;
   case C_POP:
     if (strcmp(segment, "constant") == 0)
     {
+      // invalid scenario
     }
     else if (strcmp(segment, "static") == 0)
     {
+      char str[MAX_FNAME_LENGTH + 8];
+      sprintf(str, "@%s.%d\n", get_filename(), idx);
+      fputs(str, out);
+      fputs("D=A\n@13\nM=D\n", out);
+      pop_stack_to_d();
+      fputs("@13\nA=M\nM=D\n", out);
     }
     else if (strcmp(segment, "argument") == 0)
     {
@@ -194,9 +230,30 @@ void write_push_pop(CommandType cmd_type, char *segment, int idx)
     }
     else if (strcmp(segment, "pointer") == 0)
     {
+      // pointer segment maps to R3 & R4
+      if (idx == 0)
+      {
+        fputs("@3\n", out);
+      }
+      else if (idx == 1)
+      {
+        fputs("@4\n", out);
+      }
+      // same as other segments
+      fputs("D=A\n@13\nM=D\n", out);
+      pop_stack_to_d();
+      fputs("@13\nA=M\nM=D\n", out);
     }
     else if (strcmp(segment, "temp") == 0)
     {
+      // temp segment maps to R5 - R12
+      char str[5];
+      sprintf(str, "@%d\n", idx + 5);
+      fputs(str, out);
+      // same as other segments
+      fputs("D=A\n@13\nM=D\n", out);
+      pop_stack_to_d();
+      fputs("@13\nA=M\nM=D\n", out);
     }
     break;
   default:

@@ -3,6 +3,9 @@
 #include <string.h>
 
 static FILE *file = NULL;
+static char filename[MAX_FNAME_LENGTH];
+static char f_extension[16] = {'\0'};
+
 static char curr_cmd[MAX_CMD_LENGTH] = {'\0'};
 static char next_cmd[MAX_CMD_LENGTH] = {'\0'};
 static char curr_arg1[MAX_ARG_LENGTH] = {'\0'};
@@ -16,11 +19,36 @@ void init_file(char *path)
         fprintf(stderr, "Error opening file");
         return;
     }
+    // process filename for use in codewriter.c
+    char *start = strrchr(path, '/');
+    start = (start == NULL) ? path : start + 1;
+
+    char *end = strrchr(path, '.');
+    if (end == NULL)
+    {
+        end = &path[strlen(path) - 1];
+    }
+    else
+    {
+        strcpy(f_extension, end);
+    }
+    strncpy(filename, start, end - start);
+    filename[end - start] = '\0';
 };
 
 void close_file(void)
 {
     fclose(file);
+};
+
+char *get_filename(void)
+{
+    return filename;
+};
+
+char *get_fextension(void)
+{
+    return f_extension;
 };
 
 void get_next_command(void)
