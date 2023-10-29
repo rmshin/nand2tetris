@@ -69,7 +69,7 @@
   <subroutineDec>
     <keyword> function </keyword>
     <keyword> void </keyword>
-    <identifier> more </identifier>
+    <identifier> test </identifier>
     <symbol> ( </symbol>
     <parameterList>
     </parameterList>
@@ -78,8 +78,22 @@
       <symbol> { </symbol>
       <varDec>
         <keyword> var </keyword>
-        <keyword> boolean </keyword>
-        <identifier> b </identifier>
+        <keyword> int </keyword>
+        <identifier> i </identifier>
+        <symbol> , </symbol>
+        <identifier> j </identifier>
+        <symbol> ; </symbol>
+      </varDec>
+      <varDec>
+        <keyword> var </keyword>
+        <identifier> String </identifier>
+        <identifier> s </identifier>
+        <symbol> ; </symbol>
+      </varDec>
+      <varDec>
+        <keyword> var </keyword>
+        <identifier> Array </identifier>
+        <identifier> a </identifier>
         <symbol> ; </symbol>
       </varDec>
       <statements>
@@ -88,17 +102,68 @@
           <symbol> ( </symbol>
           <expression>
             <term>
-              <identifier> b </identifier>
+              <identifier> i </identifier>
             </term>
           </expression>
           <symbol> ) </symbol>
           <symbol> { </symbol>
           <statements>
+            <letStatement>
+              <keyword> let </keyword>
+              <identifier> s </identifier>
+              <symbol> = </symbol>
+              <expression>
+                <term>
+                  <identifier> i </identifier>
+                </term>
+              </expression>
+              <symbol> ; </symbol>
+            </letStatement>
+            <letStatement>
+              <keyword> let </keyword>
+              <identifier> s </identifier>
+              <symbol> = </symbol>
+              <expression>
+                <term>
+                  <identifier> j </identifier>
+                </term>
+              </expression>
+              <symbol> ; </symbol>
+            </letStatement>
+            <letStatement>
+              <keyword> let </keyword>
+              <identifier> a </identifier>
+              <symbol> [ </symbol>
+              <expression>
+                <term>
+                  <identifier> i </identifier>
+                </term>
+              </expression>
+              <symbol> ] </symbol>
+              <symbol> = </symbol>
+              <expression>
+                <term>
+                  <identifier> j </identifier>
+                </term>
+              </expression>
+              <symbol> ; </symbol>
+            </letStatement>
           </statements>
           <symbol> } </symbol>
           <keyword> else </keyword>
           <symbol> { </symbol>
           <statements>
+            <letStatement>
+              <keyword> let </keyword>
+              <identifier> i </identifier>
+              <symbol> = </symbol>
+              <expression>
+                <term>
+                  <identifier> i </identifier>
+                </term>
+              </expression>
+              <symbol> ; </symbol>
+            </letStatement>
           </statements>
           <symbol> } </symbol>
         </ifStatement>
