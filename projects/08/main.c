@@ -69,6 +69,7 @@ int main(int argc, char **argv)
     strcat(out_fname, ".asm");
     init_out_file(out_fname);
 
+    write_init();
     // process file path(s)
     char fpaths[128][2048];
     int num_files = process_dir_or_file(path, fpaths);
@@ -78,31 +79,68 @@ int main(int argc, char **argv)
         init_file(fpaths[i]);
         char ext[16];
         strcpy(ext, get_fextension());
-        if (strcmp(ext, ".vm") != 0)
+        if (strcmp(ext, ".vm") == 0)
         {
-            continue;
-        }
-        while (has_more_commands())
-        {
-            advance();
-            int cmd_type = command_type();
-            char cmd_arg1[MAX_ARG_LENGTH];
-            switch (cmd_type)
+            char curr_func[MAX_ARG_LENGTH] = {'\0'};
+            char label[MAX_ARG_LENGTH * 2] = {'\0'};
+            while (has_more_commands())
             {
-            case C_ARITHMETIC:
-                // arg1 represents operation
+                advance();
+                // TODO: implement name-scoping for function labels
+                char cmd_arg1[MAX_ARG_LENGTH];
                 strcpy(cmd_arg1, arg1());
-                write_arithmetic(cmd_arg1);
-                break;
-            case C_POP:
-            case C_PUSH:
-                // arg1 represents segment
-                strcpy(cmd_arg1, arg1());
-                // arg2 represents idx
-                write_push_pop(cmd_type, cmd_arg1, arg2());
-                break;
-            default:
-                break;
+                int cmd_type = command_type();
+                switch (cmd_type)
+                {
+                case C_ARITHMETIC:
+                    // arg1 represents operation
+                    write_arithmetic(cmd_arg1);
+                    break;
+                case C_POP:
+                case C_PUSH:
+                    // arg1 represents segment
+                    // arg2 represents idx
+                    write_push_pop(cmd_type, cmd_arg1, arg2());
+                    break;
+                case C_GOTO:
+                    // arg1 represents label name
+                    strcpy(label, curr_func);
+                    strcat(label, "$");
+                    strcat(label, cmd_arg1);
+                    write_goto(label);
+                    break;
+                case C_IF:
+                    // arg1 represents label name
+                    strcpy(label, curr_func);
+                    strcat(label, "$");
+                    strcat(label, cmd_arg1);
+                    write_if(label);
+                    break;
+                case C_LABEL:
+                    // arg1 represents label name
+                    strcpy(label, curr_func);
+                    strcat(label, "$");
+                    strcat(label, cmd_arg1);
+                    write_label(label);
+                    break;
+                case C_FUNCTION:
+                    // persist func name for namespacing
+                    strcpy(curr_func, cmd_arg1);
+                    // arg1 represents fn name
+                    // arg2 represents num locals
+                    write_function(cmd_arg1, arg2());
+                    break;
+                case C_CALL:
+                    // arg1 represents fn name
+                    // arg2 represents num args
+                    write_call(cmd_arg1, arg2());
+                    break;
+                case C_RETURN:
+                    write_return();
+                    break;
+                default:
+                    break;
+                }
             }
         }
 

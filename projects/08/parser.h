@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #define MAX_FNAME_LENGTH 128
 #define MAX_CMD_LENGTH 128
-#define MAX_ARG_LENGTH 16
+#define MAX_ARG_LENGTH 32
 
 typedef enum
 {

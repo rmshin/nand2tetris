@@ -39,6 +39,13 @@ void init_file(char *path)
 void close_file(void)
 {
     fclose(file);
+    // reset static vars
+    filename[0] = '\0';
+    f_extension[0] = '\0';
+    curr_cmd[0] = '\0';
+    next_cmd[0] = '\0';
+    curr_arg1[0] = '\0';
+    curr_arg2 = 0;
 };
 
 char *get_filename(void)
@@ -86,11 +93,17 @@ void get_next_command(void)
         }
 
         match_count = sscanf(line, "%s %s %s", cmd, arg1, arg2);
-        if (match_count == 1) // arithmetic
+        if (match_count == 1)
         {
             strcpy(line, cmd);
         }
-        else if (match_count == 3) // push-pop
+        else if (match_count == 2)
+        {
+            strcpy(line, cmd);
+            strcat(line, " ");
+            strcat(line, arg1);
+        }
+        else if (match_count == 3)
         {
             strcpy(line, cmd);
             strcat(line, " ");
@@ -204,7 +217,6 @@ char *arg1(void)
     else if (cmd_type == C_RETURN || curr_cmd[0] == '\0')
     {
         curr_arg1[0] = '\0'; // reset arg1
-        return NULL;
     }
     else
     {
@@ -214,14 +226,13 @@ char *arg1(void)
         if (match_count == 1)
         {
             strcpy(curr_arg1, arg);
-            return curr_arg1;
         }
         else
         {
             curr_arg1[0] = '\0'; // reset arg1
-            return NULL;
         }
     }
+    return curr_arg1;
 };
 
 int arg2(void)
